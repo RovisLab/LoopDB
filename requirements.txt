@@ -1,0 +1,20 @@
+# Core dependencies
+numpy>=1.19.5
+scipy>=1.6.0
+matplotlib>=3.3.4
+pillow>=8.1.0
+opencv-python>=4.5.1
+
+# Web interface
+flask>=2.0.0
+werkzeug>=2.0.0
+
+# Image processing
+scikit-image>=0.18.1
+
+# GUI tools
+# Uncomment if you need GUI tools (typically already installed with Python)
+# tk>=0.1.0
+
+# Data handling
+pandas>=1.2.0
