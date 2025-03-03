@@ -1,6 +1,7 @@
 # LoopDB: A Loop Closure Dataset for SLAM
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 
 ## Overview
 
@@ -49,15 +50,6 @@ Each scene in LoopDB consists of 5 consecutive images with the following informa
 
 ## Getting Started
 
-### Prerequisites
-
-- Python 3.6+
-- OpenCV
-- NumPy
-- Flask (for web interface)
-- Matplotlib (for visualization)
-- Tkinter (for GUI tools)
-
 ### Installation
 
 1. Clone this repository:
@@ -70,8 +62,19 @@ Each scene in LoopDB consists of 5 consecutive images with the following informa
    ```bash
    pip install -r requirements.txt
    ```
+3. Download the dataset:
+   ```bash
+   # Create dataset directory
+   mkdir -p data/datastream_1/samples/left
+   mkdir -p data/datastream_2
+   ```
 
-3. Set up the dataset path:
+   Download the dataset from Google Drive:
+   - [LoopDB Dataset (Google Drive)](https://rb.gy/ppr5xj)
+   - Extract the downloaded archive into the `left` directory
+   - Ensure the structure matches the expected dataset format (see Dataset Structure section)
+   
+4. Set up the dataset path:
    - Edit the `DATASET_PATH` variable in `Api/server.py` 
    - Alternatively, specify the path as a command-line argument
 
@@ -126,7 +129,8 @@ We welcome contributions to improve the dataset and associated tools. Please fee
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
 
 ## Acknowledgements
 
