@@ -28,6 +28,8 @@ LoopDB is organized into two main datastreams:
 1. **Datastream 1**: Contains the captured scene images and basic metadata
 2. **Datastream 2**: Contains transformation data between images
 
+The metadata provides transformations (rotation and translation) between consecutive images.
+
 ### Directory Structure
 
 ```
@@ -80,7 +82,7 @@ Each scene in LoopDB consists of 5 consecutive images with the following informa
 
 ### Basic Usage
 
-#### Exploring the Dataset via Web Interface
+#### Exploring the Dataset via Api
 
 ```bash
 python Api/server.py
@@ -104,7 +106,18 @@ python tools/visualization/cli_explorer.py view --image <timestamp>
 python tools/visualization/cli_explorer.py sequences
 ```
 
+### Calculate Transformations
+```bash
+python tools/processing/calculate_metadata/loopdb_calculation.py
+```
+
+### Upload New scene
+```bash
+python tools/collection/upload_scene.py
+```
+
 ## Tools
+This repository includes several tools for working with the LoopDB dataset:
 
 ### Data Collection
 
@@ -112,8 +125,8 @@ python tools/visualization/cli_explorer.py sequences
 
 ### Data Processing
 
-- **update_metadata.py**: Updates metadata with transformations between images
-- **find_matches.py**: Finds keypoint matches between frames for ome scence using SIFT/ORB
+- **update_metadata.py**: Calculates transformations between images using SIFT/ORB
+- **find_matches.py**: Finds keypoint matches between frames for single scence using 
 
 ### Visualization
 
