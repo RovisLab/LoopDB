@@ -72,7 +72,7 @@ Each scene in LoopDB consists of 5 consecutive images with the following informa
    ```
 
    Download the dataset from Google Drive:
-   - [LoopDB Dataset (Google Drive)](https://rb.gy/ppr5xj)
+   - [LoopDB Dataset (Google Drive)](https://drive.google.com/file/d/123Av9KY9j_KD7dTyMs2RgyvdUjf2DdMe/view?usp=sharing)
    - Extract the downloaded archive into the `left` directory
    - Ensure the structure matches the expected dataset format (see Dataset Structure section)
    
