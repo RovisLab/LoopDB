@@ -54,8 +54,10 @@ The script calculates and analyzes projection errors to evaluate the accuracy of
    main(base_path, visualize=True)
    ```
 4. show Visualization and Error Projection :
-
+```
 python loopdb_calculation.py --path /path/to/dataset/metadata --visualize --error-projection
+
+```
 ## Required Directory Structure
 
 ```
