@@ -1,10 +1,3 @@
-"""
-LoopDB Calculation Module
-
-This script contains the core functions for calculating transformations between images
-in the LoopDB dataset. It uses the original calculation method and chain processing approach.
-"""
-
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,11 +5,17 @@ import csv
 import os
 import time
 from scipy.spatial.transform import Rotation as R
+from loopdb_visualization import visualize_matches_and_transformation
+
 
 # Add scale factor as a constant
 TRANSLATION_SCALE_FACTOR = 0.0001  # Make translation values smaller
 
 def determine_root_image(index, rows):
+    """
+    Determine the root image for a given index in the sequence.
+    Root images occur every 5 images and serve as reference points.
+    """
     if index < 0 or index >= len(rows):
         return None
         
@@ -105,6 +104,14 @@ def is_valid_homography(H):
     return True
 
 def quaternion_translation_to_matrix(q, t):
+    """
+    Convert quaternion and translation to transformation matrix.
+    Args:
+        q: Quaternion [qx, qy, qz, qw]
+        t: Translation [tx, ty, tz]
+    Returns:
+        4x4 transformation matrix
+    """
     rot_matrix = R.from_quat(q).as_matrix()
     transform = np.eye(4)
     transform[:3, :3] = rot_matrix
@@ -112,6 +119,13 @@ def quaternion_translation_to_matrix(q, t):
     return transform
 
 def matrix_to_quaternion_translation(matrix):
+    """
+    Convert transformation matrix to quaternion and translation.
+    Args:
+        matrix: 4x4 transformation matrix
+    Returns:
+        Array of [qx, qy, qz, qw, tx, ty, tz]
+    """
     rot = R.from_matrix(matrix[:3, :3])
     q = rot.as_quat()  # Returns [qx, qy, qz, qw]
     t = matrix[:3, 3]  # Extract translation
@@ -138,8 +152,8 @@ def decompose_homography(H):
         qw = np.cos(angle / 2.0)
         qx, qy, qz = axis * np.sin(angle / 2.0)
         
-        return [float(qx), float(qy), float(qz), float(qw), 
-                float(T[0]), float(T[1]), float(T[2])]
+        return [float(qx.item()), float(qy.item()), float(qz.item()), float(qw.item()), 
+        float(T[0].item()), float(T[1].item()), float(T[2].item())]
     except Exception as e:
         print(f"    Error in decompose_homography: {str(e)}")
         return None
@@ -225,7 +239,7 @@ def validate_transformation(kp1, kp2, matches, H, img1, img2):
     else:
         mean_error = np.mean(errors)
     
-    print(f"    Mean reprojection error (after outlier removal): {mean_error:.4f} pixels")
+    # print(f"    Mean reprojection error (after outlier removal): {mean_error:.4f} pixels")
     
     # Use a much more relaxed threshold for real-world images
     is_valid = mean_error < 50.0  # Very relaxed threshold
@@ -259,7 +273,8 @@ def get_transformation_with_fallback(kp1, kp2, matches, img1, img2, visualize=Fa
     best_error = float('inf')
     
     for method_name, param in methods:
-        print(f"    Trying homography with {method_name}, param={param}")
+        # Comment out or remove this print statement
+        # print(f"    Trying homography with {method_name}, param={param}")
         method = getattr(cv2, f"{method_name}")
         
         try:
@@ -273,7 +288,8 @@ def get_transformation_with_fallback(kp1, kp2, matches, img1, img2, visualize=Fa
                 if error < best_error:
                     best_H = H
                     best_error = error
-                    print(f"    Found better transformation with error: {error:.2f}")
+                    # Comment out or remove this print statement
+                    # print(f"    Found better transformation with error: {error:.2f}")
         except Exception as e:
             print(f"    Error with {method_name}: {str(e)}")
     
@@ -390,7 +406,9 @@ def compute_cumulative_transformations(rows, images_path, visualize=False, vis_f
 
             # Generate visualization path if needed
             vis_path = None
-            if visualize and vis_dir:
+            if visualize :
+                vis_dir = os.getcwd()
+                os.makedirs(vis_dir, exist_ok=True)
                 vis_path = os.path.join(vis_dir, f"transform_{current_image}_to_{next_image}.jpg")
 
             # Get transformation with validation
@@ -424,7 +442,18 @@ def compute_cumulative_transformations(rows, images_path, visualize=False, vis_f
     
     return cumulative_transformations
 
-def main(base_path, visualize=False, vis_func=None):
+def main(base_path, visualize=False, show_error_projection=False):
+    """
+    Main function that orchestrates the entire process.
+    
+    Args:
+        base_path: Path to the dataset metadata folder
+        visualize: Whether to create visualizations
+        show_error_projection: Whether to run error projection analysis
+        
+    Returns:
+        Path to the updated CSV file
+    """
     # Define paths for input/output and images
     input_csv_path = os.path.join(base_path, "datastream_2", "data_descriptor.csv")
     images_path = os.path.join(base_path, "datastream_1", "samples", "left")
@@ -473,6 +502,9 @@ def main(base_path, visualize=False, vis_func=None):
 
     print(f"Processing {len(rows)} rows")
 
+    # Set the visualization function based on whether visualization is enabled
+    vis_func = visualize_matches_and_transformation if visualize else None
+    
     cumulative_transformations = compute_cumulative_transformations(rows, images_path, visualize, vis_func)
 
     # Update CSV with scaled transformations
@@ -530,25 +562,38 @@ def main(base_path, visualize=False, vis_func=None):
             writer.writerows(rows)
 
         print(f"CSV file updated and saved in datastream_2 at: {output_csv_path}")
+        
+        # Run error projection analysis if requested
+        if show_error_projection:
+            try:
+                from loopdb_error_projection import run_improved_experiment
+                print("\nRunning error projection analysis...")
+                results, summary = run_improved_experiment(base_path)
+                if summary is not None:
+                    print("\nError projection summary by feature method:")
+                    print(summary)
+                print("Error projection analysis complete!")
+            except ImportError:
+                print("\nError: Could not import error projection module.")
+                print("Make sure loopdb_error_projection.py is in the same directory.")
+        
         return output_csv_path
     except Exception as e:
         print(f"Error saving CSV file: {str(e)}")
         return None
-
+    
 if __name__ == "__main__":
-    import sys
+    import argparse
     
-    if len(sys.argv) > 1:
-        base_path = sys.argv[1]
-    else:
-        # Use a default path if none provided
-        base_path = # add the path for your dataset metadata folder ,  ex:r'C:\Users\dataset\metadata'
+    parser = argparse.ArgumentParser(description="LoopDB Calculation Tool")
+    parser.add_argument("--path", dest="base_path", 
+                        default=r"C:\Users\barak\Desktop\PhD\Research\loop_closure_dataset\script\metadata", 
+                        help="Path to the dataset metadata folder")
+    parser.add_argument("--visualize", action="store_true", 
+                        help="Generate match visualizations")
+    parser.add_argument("--error-projection", action="store_true", 
+                        help="Run error projection analysis after calculation")
     
-    try:
-        # Try to import visualization function from loopdb_visualization
-        from loopdb_visualization import visualize_matches_and_transformation
-        main(base_path, visualize=True, vis_func=visualize_matches_and_transformation)
-    except ImportError:
-        # Run without visualization if module not available
-        print("Visualization module not found, running without visualization")
-        main(base_path, visualize=False)
+    args = parser.parse_args()
+    
+    main(args.base_path, visualize=args.visualize, show_error_projection=args.error_projection)
